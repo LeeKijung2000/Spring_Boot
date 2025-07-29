@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kh.springboot.member.model.mapper.MemberMapper">
+	<select id="login" resultType="Member">
+		select * from member
+		where id =
+		#{id} and member_status = 'Y'
+	</select>
+
+	<insert id="insertMember">
+		insert into member
+		values(
+		#{id}, #{pwd}, #{name}, #{nickName}, #{email}, #{gender}, #{age},
+		#{phone}, #{address}, sysdate, sysdate,
+		default, default)
+	</insert>
+
+	<select id="selectMyList" resultType="map">
+	<![CDATA[
+		select bid_btype,
+		board_title, cdate, bc_rc
+			from (select board_id as bid_btype, board_title, board_create_date cdate,
+			to_char(board_count) bc_rc
+			from board
+			where board_writer = #{id} and board_status = 'Y'
+			order by board_id desc)
+		where rownum <= 5
+		UNION
+		select *
+		from (select board_type-3, board_title, reply_create_date, reply_content
+			from reply
+				join board on(board_id = ref_board_id)
+			where reply_writer = #{id} and reply_status = 'Y'
+			order by reply_id desc)
+		where rownum <= 5
+		order by bid_btype desc
+		]]>
+	</select>
+
+	<update id="updateEdit">
+		UPDATE member
+		SET
+		NAME = #{name},
+		NICKNAME = #{nickName},
+		EMAIL = #{email},
+		GENDER = #{gender},
+		AGE = #{age},
+		PHONE = #{phone},
+		ADDRESS = #{address}
+		WHERE ID = #{id}
+	</update>
+
+	<update id="updatePassWord">
+		update member
+		set PWD = #{pwd}
+		WHERE ID = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE member
+		SET
+		MEMBER_STATUS = 'N'
+		WHERE ID = #{id}
+	</update>
+	
+	<select id="checkId" resultType="_int">
+		select count(*)
+		from member
+		where id = #{id}
+	</select>
+	
+	<select id="nickNameCheckResult" resultType="_int">
+		select count(*)
+		from member
+		where NICKNAME = #{nickName}
+	</select>
+	
+	<select id="checkValue" resultType="_int">
+		select count(*)
+		from member
+		where ${col} = #{val}
+	</select>
+	
+	<select id="finId" resultType="string">
+		select id
+		from member
+		where EMAIL = #{email} and name = #{name} and member_status = 'Y'
+	</select>
+	
+	<select id="findPw" resultType="Member">
+		select *
+		from member
+		where EMAIL = #{email} and id = #{id} and member_status = 'Y'
+	</select>
+	
+	
+	
+	
+	
+	<select id="findInfo" resultType="Member">
+		select *
+		from member
+		where member_status = 'Y'and EMAIL = #{email} and 
+		<if test="name != null">
+			name = #{name}
+		</if>
+		<if test="name == null">
+			id = #{id}
+		</if>	
+	</select>
+
+	
+	
+	
+	
+	
+</mapper>
