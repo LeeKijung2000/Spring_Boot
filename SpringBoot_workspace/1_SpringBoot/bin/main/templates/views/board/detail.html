@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Board Detail</title>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-light">
+	<div th:replace="~{views/common/navbar :: navbar}"></div>
+	<div class="container">
+		<main>
+			<div class="py-5 text-center">
+				<a href="/home"><img class="d-block mx-auto mb-4" src="/image/springboot.png" width="130"></a>
+				<h2>BOARD DETAIL</h2>
+			</div>
+
+			<div style="margin-left: 350px; margin-right: 350px;">
+				<form class="needs-validation" id="detailForm" method="POST">
+					<input type="hidden" th:value="${b.boardId}" name="boardId"/>
+					<input type="hidden" th:value="${page}" name="page"/>
+					
+					<div class="row g-3">
+						<div class="col-12">
+							<label class="form-label">TITLE</label><br>
+							[[${b.boardTitle}]]
+						</div>
+
+						<div class="col-12">
+							<div class="input-group">
+					          <span class="input-group-text">CONTENT</span>
+					          <textarea class="form-control" rows="10" name="boardContent" style="resize: none;" readonly th:text="${b.boardContent}"></textarea>
+					        </div>
+						</div>
+
+						<br><br><br><br><br>
+
+						<!-- 수정 버튼: 로그인 사용자와 작성자가 같을 경우만 노출 -->
+						<th:block th:if="${loginUser != null and loginUser.id == b.boardWriter}">
+							<button class="w-100 btn btn-success btn-lg" type="button" id="updateForm">UPDATE</button>
+							<button class="w-100 btn btn-secondary btn-lg" type="button" id="deleteModal">DELETE</button>
+						</th:block>
+
+						<button class="w-100 btn btn-dark btn-lg" type="button" onclick="javascript:history.back();">BACK</button>
+					</div>
+					
+					<br>
+
+					<!-- 댓글 입력 -->
+					<div class="input-group">
+						<span class="input-group-text">REPLY <br> CONTENT </span>
+						<textarea rows="3" class="form-control" id="replyContent" style="resize: none;"></textarea>
+						<button class="line-success btn-lg" id="replySubmit" type="button" th:disabled="${loginUser == null}">SUBMIT</button>
+					</div>
+					
+					<br>
+
+					<!-- 댓글 목록 -->
+					<table class="table">
+						<thead>
+							<tr>
+								<th width="130px">작성자</th>
+								<th>작성내용</th>
+								<th width="130px">작성일자</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody id="replyTbody">
+							<tr th:each="r : ${list}">
+								<td>[[${r.nickName}]]</td>
+								<td>[[${r.replyContent}]]</td>
+								<td>[[${r.replyModifyDate}]]</td>
+								<td width="80px" th:if="${session.loginUser != null && session.loginUser.id eq r.replyWriter}">
+								<th:block>
+									<input type="hidden" th:value="${r.replyId}" name="replyId">
+									<span class="updel">
+										<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+									</span>
+									&nbsp;
+									<span class="updel">
+										<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg> 
+									</span>
+									<input type="hidden" th:value="${r.replyContent}">
+								</th:block>	
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</div>
+		</main>
+
+		<!-- 삭제 확인 모달 -->
+		<div class="modal fade" tabindex="-1" role="dialog" id="modalChoice">
+			<div class="modal-dialog" role="document">
+	    		<div class="modal-content rounded-3 shadow">
+	      			<div class="modal-body p-4 text-center">
+	        			<h3 class="mb-0">정말로 삭제하시겠습니까?</h3>
+	        			<p class="mb-0">삭제 후 게시글은 복구할 수 없습니다.</p>
+	      			</div>
+	      			<div class="modal-footer flex-nowrap p-0">
+	        			<button type="button" class="btn btn-lg btn-link fs-6 col-6 m-0 border-end" id="delete">
+	        				<strong>네</strong>
+	        			</button>
+	        			<button type="button" class="btn btn-lg btn-link fs-6 col-6 m-0" data-bs-dismiss="modal">아니오</button>
+	      			</div>
+	    		</div>
+	  		</div>
+		</div>
+
+		<footer class="my-5 pt-5 text-muted text-center text-small"></footer>
+	</div>
+	
+	<!-- JavaScript -->
+	<script th:inline="javascript">
+		window.onload = () => {
+			const form = document.getElementById('detailForm');
+
+			const upd = document.getElementById('updateForm');
+			if(upd) {
+				upd.addEventListener('click', () => {
+					form.action = '/board/updForm';
+					form.submit();
+				});
+			}
+
+			const deleteModal = document.getElementById('deleteModal');
+			if(deleteModal) {
+				deleteModal.addEventListener('click', () => {
+					$('#modalChoice').modal('show');
+				});
+			}
+
+			document.getElementById('delete').addEventListener('click', () => {
+				form.action = '/board/delete';
+				form.submit();
+			});
+
+			const tbody = document.getElementById('replyTbody');
+			
+			// 댓글 등록 AJAX
+			document.getElementById('replySubmit').addEventListener('click', () => {
+				const content = document.getElementById('replyContent').value;
+
+				if (!content.trim()) {
+					alert("댓글 내용을 입력해주세요.");
+					return;
+				}
+
+				$.ajax({
+					url: '/board/rinsert',
+					//type: 'POST',
+					//dataType: 'json',
+					data: {
+						replyContent: content,
+						refBoardId: /*[[${b.boardId}]]*/ 1,
+						replyWriter: /*[[${loginUser != null ? loginUser.id : ''}]]*/ 'user01'
+					},
+					success: data => {
+						tbody.innerHTML = '';
+						for (const r of data) {
+							const tr = document.createElement('tr');
+
+							const writerTd = document.createElement('td');
+							writerTd.textContent = r.nickName;
+
+							const contentTd = document.createElement('td');
+							contentTd.textContent = r.replyContent;
+
+							const dateTd = document.createElement('td');
+							dateTd.textContent = r.replyModifyDate;
+
+							tr.append(writerTd, contentTd, dateTd);
+							
+							const iconTd = document.createElement('td');
+							iconTd.setAttribute('width', '80px');
+							if(r.replyWriter == /*[[${session.loginUser != null ? session.loginUser.id : ''}]]*/'user01'){
+								iconTd.innerHTML ='<input type="hidden" value="' + r.replyId +'" name="replyId"> <span class="updel"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg></span> &nbsp <span class="updel"> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg></span> <input type="hidden value="' +  r.replyContent +  '">';                                                   
+							}
+							tr.append(iconTd);	
+							
+							tbody.append(tr);
+											
+						}
+						document.getElementById('replyContent').value = '';
+					},
+					error: err => console.log(err)
+				});
+			});
+			
+			tbody.addEventListener('mouseover', e => {
+			    const eventTarget = e.target;
+			    const targetTagName = eventTarget.tagName.toLowerCase();
+			    switch(targetTagName) {
+			        case 'span': case 'svg': case 'path':
+			            eventTarget.style.cursor = 'pointer';
+			            if(targetTagName == 'path') {
+			                eventTarget.setAttribute('fill', 'rgb(109,179,63)');
+			            } else {
+			                const paths = eventTarget.querySelectorAll('path');
+			                paths.forEach(path => path.setAttribute('fill', 'rgb(109,179,63)'));
+			            }
+			    }
+			});
+
+				
+			tbody.addEventListener('mouseout', e => {
+			    const eventTarget = e.target;
+			    const targetTagName = eventTarget.tagName.toLowerCase();
+			    switch(targetTagName) {
+			        case 'span': case 'svg': case 'path':
+			            eventTarget.style.cursor = 'pointer';
+			            if(targetTagName == 'path') {
+			                eventTarget.setAttribute('fill', 'currentColor');
+			            } else {
+			                const paths = eventTarget.querySelectorAll('path');
+			                paths.forEach(path => path.setAttribute('fill', 'currentColor'));
+			            }
+			    }
+			});
+		
+			
+			tbody.addEventListener('click', e => {
+				const eventTarget = e.target;
+				const targetTagName = eventTarget.tagName.toLowerCase();
+				let targetSVG = null;
+				switch(targetTagName) {
+				case 'span' : targetSVG = eventTarget.children[0]; break;
+				case 'svg' : targetSVG = eventTarget; break;
+				case 'path' : targetSVG = eventTarget.parentElement; break;
+				}
+				
+				const myTd = targetSVG.parentElement.parentElement;
+				const contentTd = myTd.parentElement.children[1];
+				const replyId =myTd.children[0].value;
+				
+				
+				if(targetSVG != null) {
+					if(targetSVG.className.baseVal.includes('pencil')) {
+						
+						const beforeCheckArr = document.getElementsByClassName('bi-check-lg');
+						console.log("지금 클릭한" + beforeCheckArr)
+						if(beforeCheckArr.length > 0){
+							const beforeCheckArrTd = beforeCheckArr[0].parentElement.parentElement;
+							beforeCheckArrTd.parentElement.children[1].innerHTML = beforeCheckArrTd.children[3].value;
+							// ✔ 아이콘 되돌리기 (수정 상태 -> 원래 상태)
+							beforeCheckArrTd.children[1].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>';
+							beforeCheckArrTd.children[2].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>';
+						}
+								
+						
+						contentTd.innerHTML= '<textarea rows="2" cols="30" style="resize:none;">' + contentTd.innerText + '</textarea>'
+						myTd.children[1].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022"/></svg>';
+						myTd.children[2].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>';
+						
+					} else if(targetSVG.className.baseVal.includes('trash')) {
+						if(confirm('정말 삭제하시겠습니까?')) {
+							$.ajax({
+								url: '/board/rdelete',
+								data: {rId: replyId},
+								success: data => {
+									if(data == 1){
+										myTd.parentElement.remove();
+									} else {
+										alert('댓글 삭제 중 오류가 발생했습니다.');
+										location.reload();
+									}
+								},
+								error: data => console.log(data)
+							});
+						}
+					} else if(targetSVG.className.baseVal.includes('check')) {
+						// 수정 진행
+						$.ajax({
+							url: '/board/rupdate',
+							data: {replyId: replyId, replyContent: contentTd.children[0].value},
+							success: data => {
+								if(data == 1) {
+									contentTd.innerHTML = contentTd.children[0].value;
+									myTd.children[1].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>'
+									myTd.children[2].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>';
+									myTd.children[3].value = contentTd.innerText;
+								} else {
+									alert('댓글 수정 중 오류가 발생했습니다.')
+									location.reload();
+								}
+							},
+							error: data => console.log(data)
+						})
+					} else if(targetSVG.className.baseVal.includes('x')) {
+						// 수정 취소 : 연필/삭제 view로 전환
+						contentTd.innerHTML = myTd.children[3].value;
+						myTd.children[1].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>'
+						myTd.children[2].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>';
+					}
+				}
+			});
+						
+		}
+	</script>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</body>
+</html>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kh.springboot.board.model.mapper.BoardMapper">
+	<select id="getListCount" resultType="_int">
+		select count(*)
+		from board
+		where board_type = #{i} and board_status='Y'
+	</select>
+
+	<select id="selectBoardList" resultType="Board">
+		select *
+		from board
+		join member on (board_writer = id)
+		where board_status = 'Y' and
+		board_type=#{i}
+		order by board_id desc
+	</select>
+
+	<insert id="insert">
+		<!-- selectKey : insert/update 시 사용할 값(시퀀스)을 조회해서 객체의 지정도니 필드에 대입 order 
+			: sql문이 실행되기 전/후에 selectKey가 수행되도록 지정 KetProperty: selectKey 조회결과를 저장할 필드 -->
+
+		<selectKey order="BEFORE" keyProperty="boardId"
+			resultType="_int">
+			select seq_bid.nextval from dual
+		</selectKey> <!-- 시퀀스를 그냥 여기서 먼저 함 -->
+		INSERT INTO BOARD
+		values (#{boardId},
+		#{boardTitle},#{boardWriter},#{boardContent},
+		default, sysdate, sysdate, default, #{boardType})
+	</insert>
+
+	<select id="selectBoard">
+		select *
+		from board
+		join member on(board_writer = id)
+		where board_id = #{bId} and
+		board_status='Y'
+	</select>
+
+	<update id="updateCount">
+		update board
+		set BOARD_COUNT = BOARD_COUNT + 1
+		where
+		board_id = #{bId}
+	</update>
+
+	<update id="updateBoard">
+		update board
+		set board_title = #{boardTitle},
+		board_content = #{boardContent}, board_modify_date = sysdate,
+		board_type=#{boardType}
+		where board_id = #{boardId}
+	</update>
+
+	<update id="delete">
+		update board
+		set board_status = 'N'
+		where board_id =
+		#{boardId}
+	</update>
+
+	<select id="selectAttmBoardList" resultType="Attachment">
+		select *
+		from attachment
+		where attm_status = 'Y' and
+		<if test="bId == null">
+			attm_level = 0
+		</if>
+		<if test="bId != null">
+			ref_board_id = #{bid}
+		</if>
+		order by attm_id
+	</select>
+
+	<insert id="insertAttm">
+		INSERT ALL
+		<foreach collection="list" item="item" separator=" ">
+			into attachment
+			values(new_aid, #{item.refBoardId}, #{item.originalName},  <!-- new_aid는 만들어진 시퀀스를 가져옴 
+				(함수) -->
+			#{item.renameName}, #{item.attmPath}, #{item.attmLevel}, default)
+		</foreach>
+		select * from dual
+	</insert>
+	<!-- 시퀀스는 for문 안에 있어도 한번만 실행되게 된다 -->
+
+
+	<delete id="deleteAttm">
+
+		DELETE FROM attachment
+		where rename_name in
+		<foreach collection="list" item="item" open="(" close=")"
+			separator=",">
+			#{item}
+		</foreach>
+
+	</delete>
+
+	<update id="updateAttmLevel">
+		update attachment
+		set attm_level = 0
+		where attm_id = (
+			select min(attm_id)
+			from attachment
+			where REF_BOARD_ID = #{boardId}
+		)
+	</update>
+
+<!-- 	<update id="statusNAttm"> -->
+<!-- 		update attachment -->
+<!-- 		set attm_status = 'N' -->
+<!-- 		where ref_board_id = #{bId} -->
+<!-- 	</update> -->
+
+	<select id="selectTop">
+	<![CDATA[
+		select * 
+		from (
+		select *
+		from board
+			join member on(id = board_writer)
+		where board_status = 'Y'
+		order by board_count desc)
+		where rownum <= 5
+	]]>
+	</select>
+
+	<select id="selectReplyList" resultType="Reply">
+		select * 
+		from reply
+			join member on (reply_writer = id)
+		where reply_status = 'Y' and ref_board_id = #{bId}
+		order by reply_id desc 
+	</select>
+	
+	<insert id="insertReply">
+		insert into reply
+		values(seq_rid.nextval, #{replyContent}, #{refBoardId}, #{replyWriter}, sysdate, sysdate, default)
+	
+	</insert>
+
+	<delete id="rdelete">
+		delete from reply
+		where reply_id = #{rId}
+	</delete>
+	
+	<update id="rupdate" parameterType="Reply">
+		update reply
+		set reply_content = #{replyContent}
+		where reply_id = #{replyId}
+	</update>
+
+</mapper>
